@@ -76,10 +76,10 @@ List<DataSource::SnifferFunc>::iterator DataSource::extendedSnifferPosition;
 
 bool DataSource::sniff(
         String8 *mimeType, float *confidence, sp<AMessage> *meta) {
-
     *mimeType = "";
     *confidence = 0.0f;
     meta->clear();
+
     Mutex::Autolock autoLock(gSnifferMutex);
     for (List<SnifferFunc>::iterator it = gSniffers.begin();
          it != gSniffers.end(); ++it) {

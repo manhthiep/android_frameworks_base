@@ -43,7 +43,7 @@ import com.android.internal.R;
 public class WaveView extends View implements ValueAnimator.AnimatorUpdateListener {
     private static final String TAG = "WaveView";
     private static final boolean DBG = false;
-    private static final int WAVE_COUNT = 10; // default wave count
+    private static final int WAVE_COUNT = 20; // default wave count
     private static final long VIBRATE_SHORT = 20;  // msec
     private static final long VIBRATE_LONG = 20;  // msec
 
@@ -58,13 +58,13 @@ public class WaveView extends View implements ValueAnimator.AnimatorUpdateListen
     // Animation properties.
     private static final long DURATION = 300; // duration of transitional animations
     private static final long FINAL_DURATION = 200; // duration of final animations when unlocking
-    private static final long RING_DELAY = 1000; // when to start fading animated rings
+    private static final long RING_DELAY = 1300; // when to start fading animated rings
     private static final long FINAL_DELAY = 200; // delay for unlock success animation
-    private static final long SHORT_DELAY = 200; // for starting one animation after another.
-    private static final long WAVE_DURATION = 2000; // amount of time for wave to expand/decay
-    private static final long RESET_TIMEOUT = 0; // elapsed time of inactivity before we reset
-    private static final long DELAY_INCREMENT = 30; // increment per wave while tracking motion
-    private static final long DELAY_INCREMENT2 = 20; // increment per wave while not tracking
+    private static final long SHORT_DELAY = 100; // for starting one animation after another.
+    private static final long WAVE_DURATION = 2000; // amount of time for way to expand/decay
+    private static final long RESET_TIMEOUT = 3000; // elapsed time of inactivity before we reset
+    private static final long DELAY_INCREMENT = 15; // increment per wave while tracking motion
+    private static final long DELAY_INCREMENT2 = 12; // increment per wave while not tracking
     private static final long WAVE_DELAY = WAVE_DURATION / WAVE_COUNT; // initial propagation delay
 
     /**
@@ -263,6 +263,20 @@ public class WaveView extends View implements ValueAnimator.AnimatorUpdateListen
 
             case STATE_START_ATTEMPT:
                 if (DBG) Log.v(TAG, "State START_ATTEMPT");
+                mUnlockDefault.removeAnimationFor("x");
+                mUnlockDefault.removeAnimationFor("y");
+                mUnlockDefault.removeAnimationFor("scaleX");
+                mUnlockDefault.removeAnimationFor("scaleY");
+                mUnlockDefault.removeAnimationFor("alpha");
+                mUnlockDefault.setX(mLockCenterX + 182);
+                mUnlockDefault.setY(mLockCenterY);
+                mUnlockDefault.setScaleX(0.1f);
+                mUnlockDefault.setScaleY(0.1f);
+                mUnlockDefault.setAlpha(0.0f);
+
+                mUnlockDefault.addAnimTo(DURATION, SHORT_DELAY, "scaleX", 1.0f, false);
+                mUnlockDefault.addAnimTo(DURATION, SHORT_DELAY, "scaleY", 1.0f, false);
+                mUnlockDefault.addAnimTo(DURATION, SHORT_DELAY, "alpha", 1.0f, false);
 
                 mUnlockRing.addAnimTo(DURATION, 0, "scaleX", 1.0f, true);
                 mUnlockRing.addAnimTo(DURATION, 0, "scaleY", 1.0f, true);

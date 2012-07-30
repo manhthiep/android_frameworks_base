@@ -44,7 +44,6 @@ import android.telephony.PhoneStateListener;
 import android.telephony.ServiceState;
 import android.telephony.SignalStrength;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 import android.util.Slog;
 import android.view.View;
 import android.widget.ImageView;
@@ -128,7 +127,7 @@ public class NetworkController extends BroadcastReceiver {
 
     private boolean mAirplaneMode = false;
 
-    static // our ui
+    // our ui
     Context mContext;
     ArrayList<ImageView> mPhoneSignalIconViews = new ArrayList<ImageView>();
     ArrayList<ImageView> mDataDirectionIconViews = new ArrayList<ImageView>();
@@ -459,92 +458,47 @@ public class NetworkController extends BroadcastReceiver {
     }
 
     private final void updateTelephonySignalStrength() {
-
-        boolean useSixBar = (Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.STATUSBAR_6BAR_SIGNAL, 1) == 1);
-        boolean ThemeCompat = Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.THEME_COMPATIBILITY_SIGNAL, 1) == 1;
-
         if (!hasService()) {
             if (CHATTY) Slog.d(TAG, "updateTelephonySignalStrength: !hasService()");
-            if (useSixBar && ThemeCompat) {
-                mPhoneSignalIconId = R.drawable.stat_sys_signal_null_6bar;
-                mDataSignalIconId = R.drawable.stat_sys_signal_null_6bar;
-            } else {
-                mPhoneSignalIconId = R.drawable.stat_sys_signal_null;
-                mDataSignalIconId = R.drawable.stat_sys_signal_null;
-            }
+            mPhoneSignalIconId = R.drawable.stat_sys_signal_null;
+            mDataSignalIconId = R.drawable.stat_sys_signal_null;
         } else {
             if (mSignalStrength == null) {
                 if (CHATTY) Slog.d(TAG, "updateTelephonySignalStrength: mSignalStrength == null");
-                if (useSixBar && ThemeCompat) {
-                    mPhoneSignalIconId = R.drawable.stat_sys_signal_null_6bar;
-                    mDataSignalIconId = R.drawable.stat_sys_signal_null_6bar;
-                } else {
-                    mPhoneSignalIconId = R.drawable.stat_sys_signal_null;
-                    mDataSignalIconId = R.drawable.stat_sys_signal_null;
-                }
+                mPhoneSignalIconId = R.drawable.stat_sys_signal_null;
+                mDataSignalIconId = R.drawable.stat_sys_signal_null;
                 mContentDescriptionPhoneSignal = mContext.getString(
                         AccessibilityContentDescriptions.PHONE_SIGNAL_STRENGTH[0]);
             } else {
                 int iconLevel;
                 int[] iconList;
                 if (isCdma() && mAlwaysShowCdmaRssi) {
-                    if (useSixBar && ThemeCompat) {
-                        mLastSignalLevel = iconLevel = mSignalStrength.getSixBarCdmaLevel();
-                        if(DEBUG) Slog.d(TAG, "mAlwaysShowCdmaRssi=" + mAlwaysShowCdmaRssi
-                                + " set to cdmaLevel=" + mSignalStrength.getSixBarCdmaLevel()
-                                + " instead of level=" + mSignalStrength.getSixBarLevel());
-                    } else {
-                        mLastSignalLevel = iconLevel = mSignalStrength.getCdmaLevel();
-                        if(DEBUG) Slog.d(TAG, "mAlwaysShowCdmaRssi=" + mAlwaysShowCdmaRssi
-                                + " set to cdmaLevel=" + mSignalStrength.getCdmaLevel()
-                                + " instead of level=" + mSignalStrength.getLevel());
-                    }
+                    mLastSignalLevel = iconLevel = mSignalStrength.getCdmaLevel();
+                    if(DEBUG) Slog.d(TAG, "mAlwaysShowCdmaRssi=" + mAlwaysShowCdmaRssi
+                            + " set to cdmaLevel=" + mSignalStrength.getCdmaLevel()
+                            + " instead of level=" + mSignalStrength.getLevel());
                 } else {
-                    mLastSignalLevel = iconLevel = (useSixBar && ThemeCompat) ?
-                            mSignalStrength.getSixBarLevel() : mSignalStrength.getLevel();
+                    mLastSignalLevel = iconLevel = mSignalStrength.getLevel();
                 }
 
                 if (isCdma()) {
                     if (isCdmaEri()) {
-                        if (useSixBar && ThemeCompat) {
-                            iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_6BAR[mInetCondition];
-                        } else {
-                            iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_ROAMING[mInetCondition];
-                        }
+                        iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_ROAMING[mInetCondition];
                     } else {
-                        if (useSixBar && ThemeCompat) {
-                            iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_6BAR[mInetCondition];
-                        } else {
-                            iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_ROAMING[mInetCondition];
-                        }
+                        iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH[mInetCondition];
                     }
                 } else {
                     // Though mPhone is a Manager, this call is not an IPC
                     if (mPhone.isNetworkRoaming()) {
-                        if (useSixBar && ThemeCompat) {
-                            iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_6BAR[mInetCondition];
-                        } else {
-                            iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_ROAMING[mInetCondition];
-                        }
+                        iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_ROAMING[mInetCondition];
                     } else {
-                        if (useSixBar && ThemeCompat) {
-                            iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_6BAR[mInetCondition];
-                        } else {
-                            iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_ROAMING[mInetCondition];
-                        }
+                        iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH[mInetCondition];
                     }
                 }
                 mPhoneSignalIconId = iconList[iconLevel];
                 mContentDescriptionPhoneSignal = mContext.getString(
                         AccessibilityContentDescriptions.PHONE_SIGNAL_STRENGTH[iconLevel]);
-
-                if (useSixBar && ThemeCompat) {
-                    mDataSignalIconId = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_6BAR[mInetCondition][iconLevel];
-                } else {
-                    mDataSignalIconId = TelephonyIcons.DATA_SIGNAL_STRENGTH[mInetCondition][iconLevel];
-                }
+                mDataSignalIconId = TelephonyIcons.DATA_SIGNAL_STRENGTH[mInetCondition][iconLevel];
             }
         }
     }
@@ -990,8 +944,6 @@ public class NetworkController extends BroadcastReceiver {
                 combinedActivityIconId = mMobileActivityIconId;
                 combinedSignalIconId = mDataSignalIconId; // set by updateDataIcon()
                 mContentDescriptionCombinedSignal = mContentDescriptionDataType;
-            } else {
-                mMobileActivityIconId = 0;
             }
         }
 

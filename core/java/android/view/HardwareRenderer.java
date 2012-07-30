@@ -85,7 +85,7 @@ public abstract class HardwareRenderer {
     /**
      * System property used to enable or disable vsync.
      * The default value of this property is assumed to be false.
-     *
+     * 
      * Possible values:
      * "true", to disable vsync
      * "false", to enable vsync

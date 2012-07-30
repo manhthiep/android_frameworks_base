@@ -24,13 +24,6 @@
          all of the currently visible notifications. [CHAR LIMIT=10]-->
     <string name="status_bar_clear_all_button">Clear</string>
 
-    <!-- Title for the pseudo-notification shown when notifications are disabled (do-not-disturb
-         mode) -->
-    <string name="notifications_off_title">Notifications off</string>
-
-    <!-- Content text for do-not-disturb mode notification -->
-    <string name="notifications_off_text">Touch to enable notifications</string>
-
     <!-- The text for the button in the notification window-shade that turns
          on do not disturb mode, where notifications no longer show their ticker,
          no sound plays, and no icons are visible.  The windowshade continues to show
@@ -240,10 +233,6 @@
     <string name="accessibility_phone_two_bars">Phone two bars.</string>
     <!-- Content description of the phone signal when it is three bars for accessibility (not shown on the screen). [CHAR LIMIT=NONE] -->
     <string name="accessibility_phone_three_bars">Phone three bars.</string>
-    <!-- Content description of the phone signal when it is four bars for accessibility (not shown on the screen). [CHAR LIMIT=NONE] -->
-    <string name="accessibility_phone_four_bars">Phone four bars.</string>
-    <!-- Content description of the phone signal when it is five bars for accessibility (not shown on the screen). [CHAR LIMIT=NONE] -->
-    <string name="accessibility_phone_five_bars">Phone five bars.</string>
     <!-- Content description of the phone signal when it is full for accessibility (not shown on the screen). [CHAR LIMIT=NONE] -->
     <string name="accessibility_phone_signal_full">Phone signal full.</string>
 
@@ -255,10 +244,6 @@
     <string name="accessibility_data_two_bars">Data two bars.</string>
     <!-- Content description of the data signal when it is three bars for accessibility (not shown on the screen). [CHAR LIMIT=NONE] -->
     <string name="accessibility_data_three_bars">Data three bars.</string>
-    <!-- Content description of the data signal when it is four bars for accessibility (not shown on the screen). [CHAR LIMIT=NONE] -->
-    <string name="accessibility_data_four_bars">Data four bars.</string>
-    <!-- Content description of the data signal when it is five bars for accessibility (not shown on the screen). [CHAR LIMIT=NONE] -->
-    <string name="accessibility_data_five_bars">Data five bars.</string>
     <!-- Content description of the data signal when it is full for accessibility (not shown on the screen). [CHAR LIMIT=NONE] -->
     <string name="accessibility_data_signal_full">Data signal full.</string>
 
@@ -377,59 +362,4 @@
 
     <!-- Content description of the clear button in the notification panel for accessibility (not shown on the screen). [CHAR LIMIT=NONE] -->
     <string name="accessibility_clear_all">Clear all notifications.</string>
-
-
-    <!-- Strings for QwikWidgets -->
-    <string name="widget_wifi_title">Wi-Fi</string>
-    <string name="widget_wimax_title">Wimax</string>
-    <string name="widget_wifiap_title">Hot Spot</string>
-    <string name="widget_gps_title">Gps</string>
-    <string name="widget_sync_title">Sync</string>
-    <string name="widget_bt_title">Bluetooth</string>
-    <string name="widget_mobile_data_title">Mobile Data</string>
-    <string name="widget_usb_tether_title">Usb Tether</string>
-    <string name="widget_auto_rotate_title">Auto Rotate</string>
-    <string name="widget_airplane_title">Airplane Mode</string>
-    <string name="widget_notifications_title">DnD</string>
-    <string name="widget_brightness_title">Brightness</string>
-    <string name="default_qwik_widgets">toggleWifi|toggleBluetooth|toggleAutoRotate</string>
-
-    <!-- Battery Info screen. Value for a status item.  Used for diagnostic info screens, precise translation isn't needed -->
-    <string name="battery_info_status_unknown">Unknown</string>
-    <!-- Battery Info screen. Value for a status item.  Used for diagnostic info screens, precise translation isn't needed -->
-    <string name="battery_info_status_charging">Charging</string>
-    <!-- Battery Info screen. Units shown after a value.  Used for diagnostic info screens, precise translation isn't needed -->
-    <string name="battery_info_status_charging_ac">(AC)</string>
-    <!-- Battery Info screen. Units shown after a value.  Used for diagnostic info screens, precise translation isn't needed -->
-    <string name="battery_info_status_charging_usb">(USB)</string>
-    <!-- Battery Info screen. Value for a status item.  Used for diagnostic info screens, precise translation isn't needed -->
-    <string name="battery_info_status_discharging">Discharging</string>
-    <!-- Battery Info screen. Value for a status item.  Used for diagnostic info screens, precise translation isn't needed -->
-    <string name="battery_info_status_not_charging">Not charging</string>
-    <!-- Battery Info screen. Value for a status item.  Used for diagnostic info screens, precise translation isn't needed -->
-    <string name="battery_info_status_full">Full</string>
-
-    <!-- Battery Info screen. Units shown after a value.  Used for diagnostic info screens, precise translation isn't needed -->
-    <string name="battery_info_power_unplugged">Unplugged</string>
-    <string name="battery_info_power_ac">AC</string>
-    <string name="battery_info_power_usb">USB</string>
-    <string name="battery_info_power_ac_usb">AC+USB</string>
-    <string name="battery_info_power_unknown">Unknown</string>
-
-    <!-- Battery Info screen. Value for a status item.  Used for diagnostic info screens, precise translation isn't needed -->
-    <string name="battery_info_health_unknown">Unknown</string>
-    <!-- Battery Info screen. Value for a status item.  Used for diagnostic info screens, precise translation isn't needed -->
-    <string name="battery_info_health_good">Good</string>
-    <!-- Battery Info screen. Value for a status item.  Used for diagnostic info screens, precise translation isn't needed -->
-    <string name="battery_info_health_overheat">Overheat</string>
-    <!-- Battery Info screen. Value for a status item.  Used for diagnostic info screens, precise translation isn't needed -->
-    <string name="battery_info_health_dead">Dead</string>
-    <!-- Battery Info screen. Value for a status item.  Used for diagnostic info screens, precise translation isn't needed -->
-    <string name="battery_info_health_over_voltage">Over voltage</string>
-    <!-- Battery Info screen. Value for a status item.  Used for diagnostic info screens, precise translation isn't needed -->
-    <string name="battery_info_health_unspecified_failure">Unknown error</string>
-    <!-- Battery Info screen. Value for a status item.  Used for diagnostic info screens, precise translation isn't needed -->
-    <string name="battery_info_health_cold">Cold</string>
-
-
 </resources>

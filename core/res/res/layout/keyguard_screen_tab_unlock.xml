@@ -121,7 +121,7 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="332dip">
+        android:layout_height="302dip">
 
         <com.android.internal.widget.multiwaveview.MultiWaveView
             android:id="@+id/unlock_widget"
@@ -138,36 +138,11 @@
             android:outerRadius="@dimen/multiwaveview_target_placement_radius"
             android:snapMargin="@dimen/multiwaveview_snap_margin"
             android:hitRadius="@dimen/multiwaveview_hit_radius"
+            android:rightChevronDrawable="@drawable/ic_lockscreen_chevron_right"
             android:horizontalOffset="0dip"
             android:verticalOffset="60dip"
             android:feedbackCount="3"
             android:vibrationDuration="20"
-            />
-
-        <com.android.internal.widget.SlidingTab
-            android:id="@+id/tab_selector"
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_marginBottom="80dip"
-            />
-
-        <com.android.internal.widget.RotarySelector
-            android:id="@+id/rotary_selector"
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_marginBottom="60dip"
-            />
-
-        <com.android.internal.widget.WaveView
-            android:id="@+id/honeycomb_selector"
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_alignParentBottom="true"
             />
 
         <TextView

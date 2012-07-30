@@ -67,7 +67,6 @@ public class BluetoothStressTest extends InstrumentationTestCase {
         for (int i = 0; i < iterations; i++) {
             mTestUtils.writeOutput("enable iteration " + (i + 1) + " of " + iterations);
             mTestUtils.enable(adapter);
-            sleep(SCO_SLEEP_TIME);
             mTestUtils.disable(adapter);
         }
     }
@@ -83,14 +82,12 @@ public class BluetoothStressTest extends InstrumentationTestCase {
 
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
         mTestUtils.disable(adapter);
-        sleep(SCO_SLEEP_TIME);
         mTestUtils.enable(adapter);
         mTestUtils.undiscoverable(adapter);
 
         for (int i = 0; i < iterations; i++) {
             mTestUtils.writeOutput("discoverable iteration " + (i + 1) + " of " + iterations);
             mTestUtils.discoverable(adapter);
-            sleep(SCO_SLEEP_TIME);
             mTestUtils.undiscoverable(adapter);
         }
 
@@ -108,14 +105,12 @@ public class BluetoothStressTest extends InstrumentationTestCase {
 
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
         mTestUtils.disable(adapter);
-        sleep(SCO_SLEEP_TIME);
         mTestUtils.enable(adapter);
         mTestUtils.stopScan(adapter);
 
         for (int i = 0; i < iterations; i++) {
             mTestUtils.writeOutput("scan iteration " + (i + 1) + " of " + iterations);
             mTestUtils.startScan(adapter);
-            sleep(SCO_SLEEP_TIME);
             mTestUtils.stopScan(adapter);
         }
 
@@ -139,7 +134,6 @@ public class BluetoothStressTest extends InstrumentationTestCase {
             mTestUtils.writeOutput("testEnablePan iteration " + (i + 1) + " of "
                     + iterations);
             mTestUtils.enablePan(adapter);
-			sleep(SCO_SLEEP_TIME);
             mTestUtils.disablePan(adapter);
         }
 
@@ -168,7 +162,6 @@ public class BluetoothStressTest extends InstrumentationTestCase {
             mTestUtils.writeOutput("pair iteration " + (i + 1) + " of " + iterations);
             mTestUtils.pair(adapter, device, BluetoothTestRunner.sDevicePairPasskey,
                     BluetoothTestRunner.sDevicePairPin);
-			sleep(SCO_SLEEP_TIME);
             mTestUtils.unpair(adapter, device);
         }
         mTestUtils.disable(adapter);
@@ -195,7 +188,6 @@ public class BluetoothStressTest extends InstrumentationTestCase {
             mTestUtils.writeOutput("acceptPair iteration " + (i + 1) + " of " + iterations);
             mTestUtils.acceptPair(adapter, device, BluetoothTestRunner.sDevicePairPasskey,
                     BluetoothTestRunner.sDevicePairPin);
-			sleep(SCO_SLEEP_TIME);
             mTestUtils.unpair(adapter, device);
         }
         mTestUtils.disable(adapter);

@@ -1667,19 +1667,6 @@ public final class Settings {
         public static final String ACCELEROMETER_ROTATION = "accelerometer_rotation";
 
         /**
-         * Control the type of rotation which can be performed using the accelerometer
-         * if ACCELEROMETER_ROTATION is enabled.
-         * Value is a bitwise combination of
-         * 1 = 0 degrees (portrait)
-         * 2 = 90 degrees (left)
-         * 4 = 180 degrees (inverted portrait)
-         * 8 = 270 degrees (right)
-         * Setting to 0 is effectively orientation lock
-         * @hide
-         */
-        public static final String ACCELEROMETER_ROTATION_ANGLES = "accelerometer_rotation_angles";
-
-        /**
          * Default screen rotation when no other policy applies.
          * When {@link #ACCELEROMETER_ROTATION} is zero and no on-screen Activity expresses a
          * preference, this rotation value will be used. Must be one of the
@@ -1764,13 +1751,6 @@ public final class Settings {
          * @hide
          */
         public static final String NOTIFICATION_LIGHT_PULSE = "notification_light_pulse";
-
-        /**
-         * Whether the battery LED should repeatedly flash when the battery is low
-         * on charge. The value is boolean (1 or 0).
-         * @hide
-         */
-        public static final String BATTERY_LIGHT_PULSE = "battery_light_pulse";
 
         /**
          * Show pointer location on screen?
@@ -1894,11 +1874,6 @@ public final class Settings {
         public static final String SIP_ASK_ME_EACH_TIME = "SIP_ASK_ME_EACH_TIME";
 
         /**
-         * Torch state (flashlight)
-         * @hide
-         */
-        public static final String TORCH_STATE = "torch_state";
-        /**
          * Pointer speed setting.
          * This is an integer value in a range between -7 and +7, so there are 15 possible values.
          *   -7 = slowest
@@ -1907,187 +1882,6 @@ public final class Settings {
          * @hide
          */
         public static final String POINTER_SPEED = "pointer_speed";
-
-
-        /* START Constants for Evervolv Toolbox */
-
-        /**
-         * Custom caption for the lockscreen and expanded statusbar. The value is a string.
-         * @hide
-         */
-        public static final String CARRIER_CAP = "carrier_caption";
-
-        /**
-         * Which lockscreen style to use. The value is an integer.
-         * ( 1 - Tabs style: Eclair )
-         * ( 2 - Rotary style: GB   )
-         * ( 3 - MultiwaveView: ICS )
-         * @hide
-         */
-        public static final String LOCKSCREEN_STYLE = "lockscreen_style";
-
-
-        /**
-         * Whether to wake the screen with the trackball. The value is boolean (1 or 0).
-         * @hide
-         */
-        public static final String TRACKBALL_WAKE_SCREEN = "trackball_wake_screen";
-
-        /**
-         * Whether to unlock the screen with the trackball.  The value is boolean (1 or 0).
-         * @hide
-         */
-        public static final String TRACKBALL_UNLOCK_SCREEN = "trackball_unlock_screen";
-
-        /**
-         * Specifies whether to show AM/PM indicators for 12-hour. The value is boolean (1 or 0).
-         * @hide
-         */
-        public static final String HIDE_CLOCK_AMPM = "hide_ampm";
-
-        /**
-         * Specifies whether to show status clock. The value is boolean (1 or 0).
-         * @hide
-         */
-        public static final String HIDE_CLOCK = "hide_clock";
-
-        /**
-         * USB: Tether data connection upon USB plugging in.
-         * @hide
-         */
-         public static final String TETHER_ON_PLUGIN = "tether_on_plugin";
-
-         /**
-          * Statusbar Icon Flags: Stores the flags used to show/hide various statusbar icons.
-          * @hide
-          */
-          public static final String STATUSBAR_ICON_FLAGS = "statusbar_icon_flags";
-
-        /**
-        * Lockscreen custom app array
-        *
-        * 1 [0] - Left
-        * 2 [1] - Right
-        * 3 [2] - Top
-        *
-        * @hide
-        */
-        public static final String[] LOCKSCREEN_CUSTOM_APP_ACTIVITIES = new String[] {
-            "lockscreen_custom_app_activity_1",
-            "lockscreen_custom_app_activity_2",
-            "lockscreen_custom_app_activity_3"
-        };
-
-        /**
-         * String of user-defined widgets, defaulted to ..... TODO .....
-         * Delimited by | (pipe)
-         * @hide
-         */
-
-        public static final String SELECTED_QWIK_WIDGETS = "selected_qwik_widgets";
-
-        /**
-         * Integer that sets the max widgets per line (does not apply to one-line widgets).
-         * @hide
-         */
-
-        public static final String MAX_WIDGETS_PER_LINE = "max_widgets_per_line";
-
-        /**
-         * Boolean to toggle whether or not to use the Qwik Widgets.
-         * @hide
-         */
-
-        public static final String USE_QWIK_WIDGETS = "use_qwik_widgets";
-
-        /**
-         * Toggle to set notification dropdown view
-         * Notifications(default) or Toolbox
-         * @hide
-         */
-          public static final String NOTIFICATION_DROPDOWN_VIEW = "notification_dropdown_view";
-
-        /**
-         * Enable/Disable lockscreen volume button music controls to change media tracks.
-         * @hide
-         */
-        public static final String LOCKSCREEN_MUSIC_CONTROLS_VOLBTN = "lockscreen_music_controls_volbtn";
-
-        /**
-          * Statusbar toggle for 6 bar signal strength.
-          * @hide
-          */
-          public static final String STATUSBAR_6BAR_SIGNAL = "statusbar_6bar_signal";
-
-        /**
-          * Statusbar battery icon style options.
-          * 0 - Stock
-          * 1 - Stock w/ percentages
-          * 2 - Hidden
-          *
-          * @hide
-          */
-          public static final String STATUSBAR_BATT_STYLE = "statusbar_batt_style";
-
-        /**
-          * Toggle to let volume button wake the screen.
-          * @hide
-          */
-          public static final String VOLUME_WAKE_SCREEN = "volume_wake_screen";
-
-        /**
-         * Toggle to show or hide the screenshot shortcut in
-         * the power menu.
-         * @hide
-         */
-        public static final String POWER_MENU_SHOW_SCREENSHOT = "power_menu_show_screenshot";
-
-        /**
-         * Toggle to show or hide the sound shortcuts in the
-         * power menu.
-         * @hide
-         */
-        public static final String POWER_MENU_SHOW_SOUND = "power_menu_show_sound";
-
-        /**
-         * Toggle to show or hide the airplane mode toggle
-         * in the power menu.
-         * @hide
-         */
-
-        public static final String POWER_MENU_SHOW_AIRPLANE_MODE = "power_menu_show_airplane_mode";
-
-        /**
-         * Toggle to show or hide the airplane mode toggle
-         * in the power menu.
-         * @hide
-         */
-        public static final String POWER_MENU_SHOW_REBOOT_MENU = "power_menu_show_reboot_menu";
-
-        /**
-         * Change the screenshot delay from the power menu
-         * Default: 1 (1 second, 1000ms)
-         * @hide
-         */
-        public static final String POWER_MENU_SCREENSHOT_DELAY = "power_menu_screenshot_delay";
-
-        /* END Constants for Evervolv Toolbox */
-
-        /* START Constants for Theme compatibility */
-
-		/**
-		* Theme compatibility mode: Battery
-		* @hide
-		*/
-		public static final String THEME_COMPATIBILITY_BATTERY = "theme_compatibility_battery";
-
-		/**
-		* Theme compatibility mode: Four bar signal
-		* @hide
-		*/
-		public static final String THEME_COMPATIBILITY_SIGNAL = "theme_compatibility_signal";
-
-		/* END Constants for Theme compatibility */
 
         /**
          * Settings to backup. This is here so that it's in the same place as the settings
@@ -3375,12 +3169,6 @@ public final class Settings {
             "wifi_mobile_data_transition_wakelock_timeout_ms";
 
         /**
-         * Whether the Wimax should be on.  Only the WiMAX service should touch this.
-         * @hide
-         */
-        public static final String WIMAX_ON = "wimax_on";
-
-        /**
          * Whether background data usage is allowed by the user. See
          * ConnectivityManager for more info.
          */
@@ -4066,12 +3854,6 @@ public final class Settings {
          * @hide
          */
         public static final String ANR_SHOW_BACKGROUND = "anr_show_background";
-
-        /**
-         * Whether to allow killing of the foreground app by long-pressing the Back button
-         * @hide
-         */
-        public static final String KILL_APP_LONGPRESS_BACK = "kill_app_longpress_back";
 
         /**
          * The {@link ComponentName} string of the service to be used as the voice recognition

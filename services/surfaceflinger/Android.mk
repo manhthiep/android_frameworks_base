@@ -1,10 +1,6 @@
 LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
 
-ifeq ($(BOARD_HAVE_CODEC_SUPPORT),SAMSUNG_CODEC_SUPPORT)
-LOCAL_CFLAGS     += -DSAMSUNG_CODEC_SUPPORT
-endif
-
 LOCAL_SRC_FILES:= \
     Layer.cpp 								\
     LayerBase.cpp 							\
@@ -39,10 +35,6 @@ ifeq ($(BOARD_HAS_SCREEN_OFF_FLICKER),true)
 	LOCAL_CFLAGS += -DSURFACEFLINGER_FORCE_SCREEN_RELEASE
 endif
 
-ifeq ($(BOARD_USE_ADRENO_130_GPU),true)
-	LOCAL_CFLAGS += -DADRENO_130_GPU
-endif
-
 LOCAL_SHARED_LIBRARIES := \
 	libcutils \
 	libhardware \
@@ -55,12 +47,6 @@ LOCAL_SHARED_LIBRARIES := \
 
 # this is only needed for DDMS debugging
 LOCAL_SHARED_LIBRARIES += libdvm libandroid_runtime
-
-ifeq ($(BOARD_USES_LGE_HDMI_ROTATION),true)
-LOCAL_CFLAGS += -DUSE_LGE_HDMI
-LOCAL_SHARED_LIBRARIES += \
-	libnvdispmgr_d
-endif
 
 ifeq ($(BOARD_ADRENO_DECIDE_TEXTURE_TARGET),true)
     LOCAL_CFLAGS += -DDECIDE_TEXTURE_TARGET
@@ -90,12 +76,7 @@ LOCAL_C_INCLUDES += hardware/qcom/display/libqcomui
 
 endif # LEGACY_QCOM
 
-ifeq ($(TARGET_QCOM_HDMI_OUT),true)
-LOCAL_CFLAGS += -DQCOM_HDMI_OUT
-endif
-
 endif # QCOM_HARDWARE
-
 LOCAL_MODULE:= libsurfaceflinger
 
 include $(BUILD_SHARED_LIBRARY)

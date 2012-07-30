@@ -13,9 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*--------------------------------------------------------------------------
-Copyright (c) 2010-2012, Code Aurora Forum. All rights reserved.
---------------------------------------------------------------------------*/
 
 //#define LOG_NDEBUG 0
 #define LOG_TAG "ACodec"
@@ -52,10 +49,6 @@ Copyright (c) 2010-2012, Code Aurora Forum. All rights reserved.
 //Min resolution QVGA
 #define MIN_WIDTH 480;
 #define MIN_HEIGHT 320;
-#endif
-
-#ifdef SAMSUNG_CODEC_SUPPORT
-#include "include/ColorFormat.h"
 #endif
 
 namespace android {
@@ -537,15 +530,6 @@ status_t ACodec::allocateOutputBuffersFromNativeWindow() {
         format = HAL_PIXEL_FORMAT_YCrCb_420_SP;
 #endif
 
-#ifdef SAMSUNG_CODEC_SUPPORT
-    OMX_COLOR_FORMATTYPE eNativeColorFormat = def.format.video.eColorFormat;
-    setNativeWindowColorFormat(eNativeColorFormat);
-    err = native_window_set_buffers_geometry(
-            mNativeWindow.get(),
-            def.format.video.nFrameWidth,
-            def.format.video.nFrameHeight,
-           eNativeColorFormat);
-#else
     err = native_window_set_buffers_geometry(
             mNativeWindow.get(),
 #ifdef QCOM_HARDWARE
@@ -557,8 +541,6 @@ status_t ACodec::allocateOutputBuffersFromNativeWindow() {
             def.format.video.nFrameHeight,
             def.format.video.eColorFormat);
 #endif
-#endif
-
 
     if (err != 0) {
         LOGE("native_window_set_buffers_geometry failed: %s (%d)",
@@ -705,25 +687,6 @@ status_t ACodec::allocateOutputBuffersFromNativeWindow() {
 
     return err;
 }
-
-#ifdef SAMSUNG_CODEC_SUPPORT
-void ACodec::setNativeWindowColorFormat(OMX_COLOR_FORMATTYPE &eNativeColorFormat)
-{
-    // In case of Samsung decoders, we set proper native color format for the Native Window
-    if (!strcasecmp(mComponentName.c_str(), "OMX.SEC.AVC.Decoder")
-        || !strcasecmp(mComponentName.c_str(), "OMX.SEC.FP.AVC.Decoder")) {
-        switch (eNativeColorFormat) {
-            case OMX_COLOR_FormatYUV420SemiPlanar:
-                eNativeColorFormat = (OMX_COLOR_FORMATTYPE)HAL_PIXEL_FORMAT_YCbCr_420_SP;
-                break;
-            case OMX_COLOR_FormatYUV420Planar:
-            default:
-                eNativeColorFormat = (OMX_COLOR_FORMATTYPE)HAL_PIXEL_FORMAT_YCbCr_420_P;
-                break;
-        }
-    }
-}
-#endif
 
 status_t ACodec::cancelBufferToNativeWindow(BufferInfo *info) {
     CHECK_EQ((int)info->mStatus, (int)BufferInfo::OWNED_BY_US);
@@ -1306,7 +1269,7 @@ bool ACodec::allYourBuffersAreBelongToUs(
 
         if (info->mStatus != BufferInfo::OWNED_BY_US
                 && info->mStatus != BufferInfo::OWNED_BY_NATIVE_WINDOW) {
-            LOGE("[%s] Buffer %p on port %ld still has status %d",
+            LOGV("[%s] Buffer %p on port %ld still has status %d",
                     mComponentName.c_str(),
                     info->mBufferID, portIndex, info->mStatus);
             return false;
@@ -2506,6 +2469,7 @@ bool ACodec::ExecutingState::onOMXEvent(
                 mCodec->changeState(mCodec->mFlushingOutputState);
 #else
                 mCodec->freeOutputBuffersNotOwnedByComponent();
+
                 mCodec->changeState(mCodec->mOutputPortSettingsChangedState);
 #endif
             } else if (data2 == OMX_IndexConfigCommonOutputCrop) {

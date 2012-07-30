@@ -85,27 +85,14 @@ class MediaPlayerService : public BnMediaPlayerService
                 uint32_t sampleRate, int channelCount,
                 int format, int bufferCount,
                 AudioCallback cb, void *cookie);
-#ifdef WITH_QCOM_LPA
-        virtual status_t        openSession(
-                int format, int sessionId, uint32_t sampleRate, int channels);
-#endif
+
         virtual void            start();
         virtual ssize_t         write(const void* buffer, size_t size);
         virtual void            stop();
         virtual void            flush();
         virtual void            pause();
-#ifdef WITH_QCOM_LPA
-        virtual void            pauseSession();
-        virtual void            resumeSession();
-#endif
         virtual void            close();
-#ifdef WITH_QCOM_LPA
-        virtual void            closeSession();
-#endif
                 void            setAudioStreamType(int streamType) { mStreamType = streamType; }
-#ifdef WITH_QCOM_LPA
-        virtual int             getAudioStreamType() { return mStreamType; }
-#endif
                 void            setVolume(float left, float right);
                 status_t        setAuxEffectSendLevel(float level);
                 status_t        attachAuxEffect(int effectId);
@@ -119,9 +106,6 @@ class MediaPlayerService : public BnMediaPlayerService
                 int event, void *me, void *info);
 
         AudioTrack*             mTrack;
-#ifdef WITH_QCOM_LPA
-        AudioTrack*             mSession;
-#endif
         AudioCallback           mCallback;
         void *                  mCallbackCookie;
         int                     mStreamType;
@@ -165,9 +149,6 @@ class MediaPlayerService : public BnMediaPlayerService
         virtual void            pause() {}
         virtual void            close() {}
                 void            setAudioStreamType(int streamType) {}
-#ifdef WITH_QCOM_LPA
-        virtual int             getAudioStreamType() { return 0; }
-#endif
                 void            setVolume(float left, float right) {}
                 uint32_t        sampleRate() const { return mSampleRate; }
                 uint32_t        format() const { return (uint32_t)mFormat; }

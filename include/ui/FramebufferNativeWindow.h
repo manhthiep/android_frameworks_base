@@ -58,13 +58,6 @@ public:
 
     framebuffer_device_t const * getDevice() const { return fbDev; } 
 
-#ifdef QCOM_HDMI_OUT
-    void orientationChanged(int event, int orientation) {
-        if (fbDev->perform)
-            fbDev->perform(fbDev, event, orientation);
-    }
-#endif
-
     bool isUpdateOnDemand() const { return mUpdateOnDemand; }
     status_t setUpdateRectangle(const Rect& updateRect);
     status_t compositionComplete();

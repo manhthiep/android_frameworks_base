@@ -19,13 +19,11 @@
 #define LOG_TAG "OMXCodec"
 #include <utils/Log.h>
 
-#include "include/AACDecoder.h"
 #include "include/AACEncoder.h"
 #include "include/AMRNBEncoder.h"
 #include "include/AMRWBEncoder.h"
 #include "include/AVCEncoder.h"
 #include "include/M4vH263Encoder.h"
-#include "include/MP3Decoder.h"
 
 #include "include/ESDS.h"
 
@@ -59,18 +57,8 @@
 #include <QOMX_AudioExtensions.h>
 #endif
 #include "include/avc_utils.h"
-#ifdef SAMSUNG_CODEC_SUPPORT
-#include "include/ColorFormat.h"
-#endif
 
 namespace android {
-
-#ifdef SAMSUNG_CODEC_SUPPORT
-static const int OMX_SEC_COLOR_FormatNV12TPhysicalAddress = 0x7F000001;
-static const int OMX_SEC_COLOR_FormatNV12LPhysicalAddress = 0x7F000002;
-static const int OMX_SEC_COLOR_FormatNV12LVirtualAddress = 0x7F000003;
-static const int OMX_SEC_COLOR_FormatNV12Tiled = 0x7FC00002;
-#endif
 
 // Treat time out as an error if we have not received any output
 // buffers after 3 seconds.
@@ -155,10 +143,6 @@ static sp<MediaSource> Make##name(const sp<MediaSource> &source, const sp<MetaDa
 
 #define FACTORY_REF(name) { #name, Make##name },
 
-#ifdef WITH_QCOM_LPA
-FACTORY_CREATE(MP3Decoder)
-FACTORY_CREATE(AACDecoder)
-#endif
 FACTORY_CREATE_ENCODER(AMRNBEncoder)
 FACTORY_CREATE_ENCODER(AMRWBEncoder)
 FACTORY_CREATE_ENCODER(AACEncoder)
@@ -190,55 +174,13 @@ static sp<MediaSource> InstantiateSoftwareEncoder(
     return NULL;
 }
 
-#ifdef WITH_QCOM_LPA
-static sp<MediaSource> InstantiateSoftwareDecoder(
-        const char *name, const sp<MediaSource> &source) {
-    struct FactoryInfo {
-        const char *name;
-        sp<MediaSource> (*CreateFunc)(const sp<MediaSource> &);
-    };
-
-    static const FactoryInfo kFactoryInfo[] = {
-        FACTORY_REF(MP3Decoder)
-        FACTORY_REF(AACDecoder)
-    };
-    for (size_t i = 0;
-         i < sizeof(kFactoryInfo) / sizeof(kFactoryInfo[0]); ++i) {
-        if (!strcmp(name, kFactoryInfo[i].name)) {
-            return (*kFactoryInfo[i].CreateFunc)(source);
-        }
-    }
-
-    return NULL;
-}
-#endif
-
 #undef FACTORY_REF
 #undef FACTORY_CREATE
 
 static const CodecInfo kDecoderInfo[] = {
-#ifdef SAMSUNG_OMX
-    { MEDIA_MIMETYPE_AUDIO_MPEG, "OMX.SEC.mp3.dec" },
-    { MEDIA_MIMETYPE_AUDIO_AMR_NB, "OMX.SEC.amr.dec" },
-    { MEDIA_MIMETYPE_AUDIO_AMR_WB, "OMX.SEC.amr.dec" },
-    { MEDIA_MIMETYPE_AUDIO_AAC, "OMX.SEC.aac.dec" },
-    { MEDIA_MIMETYPE_AUDIO_FLAC, "OMX.SEC.flac.dec" },
-    { MEDIA_MIMETYPE_VIDEO_MPEG4, "OMX.SEC.mpeg4.dec" },
-    { MEDIA_MIMETYPE_VIDEO_H263, "OMX.SEC.h263.dec" },
-    { MEDIA_MIMETYPE_VIDEO_H263, "OMX.SEC.h263sr.dec" },
-    { MEDIA_MIMETYPE_VIDEO_AVC, "OMX.SEC.avc.dec" },
-    { MEDIA_MIMETYPE_CONTAINER_WVM, "OMX.SEC.vc1.dec" },
-    { MEDIA_MIMETYPE_CONTAINER_WVM, "OMX.SEC.wma.dec" },
-    { MEDIA_MIMETYPE_CONTAINER_WVM, "OMX.SEC.wmv7.dec" },
-    { MEDIA_MIMETYPE_CONTAINER_WVM, "OMX.SEC.wmv8.dec" },
-    { MEDIA_MIMETYPE_VIDEO_VPX, "OMX.SEC.vp8.dec" },
-#endif
     { MEDIA_MIMETYPE_IMAGE_JPEG, "OMX.TI.JPEG.decode" },
 //    { MEDIA_MIMETYPE_AUDIO_MPEG, "OMX.TI.MP3.decode" },
     { MEDIA_MIMETYPE_AUDIO_MPEG, "OMX.google.mp3.decoder" },
-#ifdef WITH_QCOM_LPA
-    { MEDIA_MIMETYPE_AUDIO_MPEG, "MP3Decoder" },
-#endif
     { MEDIA_MIMETYPE_AUDIO_MPEG_LAYER_II, "OMX.Nvidia.mp2.decoder" },
 //    { MEDIA_MIMETYPE_AUDIO_AMR_NB, "OMX.TI.AMR.decode" },
 //    { MEDIA_MIMETYPE_AUDIO_AMR_NB, "OMX.Nvidia.amr.decoder" },
@@ -249,9 +191,6 @@ static const CodecInfo kDecoderInfo[] = {
 //    { MEDIA_MIMETYPE_AUDIO_AAC, "OMX.Nvidia.aac.decoder" },
     { MEDIA_MIMETYPE_AUDIO_AAC, "OMX.TI.AAC.decode" },
     { MEDIA_MIMETYPE_AUDIO_AAC, "OMX.google.aac.decoder" },
-#ifdef WITH_QCOM_LPA
-    { MEDIA_MIMETYPE_AUDIO_AAC, "AACDecoder" },
-#endif
     { MEDIA_MIMETYPE_AUDIO_G711_ALAW, "OMX.google.g711.alaw.decoder" },
     { MEDIA_MIMETYPE_AUDIO_G711_MLAW, "OMX.google.g711.mlaw.decoder" },
     { MEDIA_MIMETYPE_VIDEO_MPEG4, "OMX.TI.DUCATI1.VIDEO.DECODER" },
@@ -297,14 +236,6 @@ static const CodecInfo kDecoderInfo[] = {
 };
 
 static const CodecInfo kEncoderInfo[] = {
-#ifdef SAMSUNG_OMX
-    { MEDIA_MIMETYPE_AUDIO_AMR_NB, "OMX.SEC.amr.enc" },
-    { MEDIA_MIMETYPE_AUDIO_AMR_WB, "OMX.SEC.amr.enc" },
-    { MEDIA_MIMETYPE_AUDIO_AAC, "OMX.SEC.aac.enc" },
-    { MEDIA_MIMETYPE_VIDEO_MPEG4, "OMX.SEC.mpeg4.enc" },
-    { MEDIA_MIMETYPE_VIDEO_H263, "OMX.SEC.h263.enc" },
-    { MEDIA_MIMETYPE_VIDEO_AVC, "OMX.SEC.avc.enc" },
-#endif
     { MEDIA_MIMETYPE_AUDIO_AMR_NB, "OMX.TI.AMR.encode" },
     { MEDIA_MIMETYPE_AUDIO_AMR_NB, "AMRNBEncoder" },
     { MEDIA_MIMETYPE_AUDIO_AMR_WB, "OMX.TI.WBAMR.encode" },
@@ -668,17 +599,15 @@ sp<MediaSource> OMXCodec::Create(
             componentName = tmp.c_str();
         }
 
-        sp<MediaSource> softwareCodec;
         if (createEncoder) {
-            softwareCodec = InstantiateSoftwareEncoder(componentName, source, meta);
-#ifdef WITH_QCOM_LPA
-        } else {
-            softwareCodec = InstantiateSoftwareDecoder(componentName, source);
-#endif
-		}
-        if (softwareCodec != NULL) {
-            LOGI("Successfully allocated software codec '%s'", componentName);
-            return softwareCodec;
+            sp<MediaSource> softwareCodec =
+                InstantiateSoftwareEncoder(componentName, source, meta);
+
+            if (softwareCodec != NULL) {
+                LOGV("Successfully allocated software codec '%s'", componentName);
+
+                return softwareCodec;
+            }
         }
 
         LOGV("Attempting to allocate OMX node '%s'", componentName);
@@ -721,7 +650,7 @@ sp<MediaSource> OMXCodec::Create(
 
         status_t err = omx->allocateNode(componentName, observer, &node);
         if (err == OK) {
-            LOGI("Successfully allocated OMX node '%s'", componentName);
+            LOGV("Successfully allocated OMX node '%s'", componentName);
 
             sp<OMXCodec> codec = new OMXCodec(
                     omx, node, quirks, flags,
@@ -1260,12 +1189,6 @@ status_t OMXCodec::setVideoPortFormatType(
     return err;
 }
 
-#ifdef SAMSUNG_CODEC_SUPPORT
-#define ALIGN_TO_8KB(x)   ((((x) + (1 << 13) - 1) >> 13) << 13)
-#define ALIGN_TO_32B(x)   ((((x) + (1 <<  5) - 1) >>  5) <<  5)
-#define ALIGN_TO_128B(x)  ((((x) + (1 <<  7) - 1) >>  7) <<  7)
-#define ALIGN(x, a)       (((x) + (a) - 1) & ~((a) - 1))
-#endif
 static size_t getFrameSize(
         OMX_COLOR_FORMATTYPE colorFormat, int32_t width, int32_t height) {
     switch (colorFormat) {
@@ -1285,21 +1208,8 @@ static size_t getFrameSize(
         * this part in the future
         */
         case OMX_COLOR_FormatAndroidOpaque:
-#ifdef SAMSUNG_CODEC_SUPPORT
-    case OMX_SEC_COLOR_FormatNV12TPhysicalAddress:
-    case OMX_SEC_COLOR_FormatNV12LPhysicalAddress:
-#endif
             return (width * height * 3) / 2;
 
-#ifdef SAMSUNG_CODEC_SUPPORT
-    case OMX_SEC_COLOR_FormatNV12LVirtualAddress:
-        return ALIGN((ALIGN(width, 16) * ALIGN(height, 16)), 2048) + ALIGN((ALIGN(width, 16) * ALIGN(height >> 1, 8)), 2048);
-
-    case OMX_SEC_COLOR_FormatNV12Tiled:
-        static unsigned int frameBufferYSise = ALIGN_TO_8KB(ALIGN_TO_128B(width) * ALIGN_TO_32B(height));
-        static unsigned int frameBufferUVSise = ALIGN_TO_8KB(ALIGN_TO_128B(width) * ALIGN_TO_32B(height/2));
-        return (frameBufferYSise + frameBufferUVSise);
-#endif
         default:
             CHECK(!"Should not be here. Unsupported color format.");
             break;
@@ -1440,7 +1350,6 @@ void OMXCodec::setVideoInputFormat(
             stride > 0? stride: -stride, sliceHeight);
 #endif
 
-
     CHECK_EQ((int)def.eDomain, (int)OMX_PortDomainVideo);
 
     video_def->nFrameWidth = width;
@@ -1562,13 +1471,7 @@ status_t OMXCodec::setupBitRate(int32_t bitRate) {
             &bitrateType, sizeof(bitrateType));
     CHECK_EQ(err, (status_t)OK);
 
-#ifdef SAMSUNG_CODEC_SUPPORT
-    // Samsung codecs ignore the bitrate if we don't explicitly
-    // tell them that we want a constant bitrate.
-    bitrateType.eControlRate = OMX_Video_ControlRateConstant;
-#else
     bitrateType.eControlRate = OMX_Video_ControlRateVariable;
-#endif
     bitrateType.nTargetBitrate = bitRate;
 
     err = mOMX->setParameter(
@@ -1937,19 +1840,7 @@ status_t OMXCodec::setVideoOutputFormat(
 #ifdef QCOM_HARDWARE
                || format.eColorFormat == QOMX_COLOR_FormatYUV420PackedSemiPlanar64x32Tile2m8ka
 #endif
-#ifdef SAMSUNG_CODEC_SUPPORT
-               || format.eColorFormat == OMX_SEC_COLOR_FormatNV12TPhysicalAddress
-               || format.eColorFormat == OMX_SEC_COLOR_FormatNV12Tiled
-#endif
                );
-#ifdef SAMSUNG_CODEC_SUPPORT
-        if (!strncmp("OMX.SEC.", mComponentName, 8)) {
-            if (mNativeWindow == NULL)
-                format.eColorFormat = OMX_COLOR_FormatYUV420Planar;
-            else
-                format.eColorFormat = OMX_COLOR_FormatYUV420SemiPlanar;
-        }
-#endif
 
         err = mOMX->setParameter(
                 mNode, OMX_IndexParamVideoPortFormat,
@@ -1972,9 +1863,8 @@ status_t OMXCodec::setVideoOutputFormat(
 
     CHECK_EQ(err, (status_t)OK);
 
-#ifdef EXYNOS4210_ENHANCEMENTS
-    const size_t X = 64 * 8 * 1024;  // const size_t X = 64 * 1024;
-#else
+#if 1
+    // XXX Need a (much) better heuristic to compute input buffer sizes.
     const size_t X = 64 * 1024;
     if (def.nBufferSize < X) {
         def.nBufferSize = X;
@@ -2335,7 +2225,7 @@ status_t OMXCodec::allocateBuffersOnPort(OMX_U32 portIndex) {
         }
 
         if (err != OK) {
-            CODEC_LOGE("allocate_buffer_with_backup failed");
+            LOGE("allocate_buffer_with_backup failed");
             return err;
         }
 
@@ -2452,7 +2342,6 @@ status_t OMXCodec::allocateOutputBuffersFromNativeWindow() {
     format ^= (mInterlaceFormatDetected ? HAL_PIXEL_FORMAT_INTERLACE : 0);
 #endif
 
-#ifndef SAMSUNG_CODEC_SUPPORT
     err = native_window_set_buffers_geometry(
             mNativeWindow.get(),
 #ifdef QCOM_HARDWARE
@@ -2463,28 +2352,6 @@ status_t OMXCodec::allocateOutputBuffersFromNativeWindow() {
             def.format.video.nFrameWidth,
             def.format.video.nFrameHeight,
             def.format.video.eColorFormat);
-#endif
-#else
-    OMX_COLOR_FORMATTYPE eColorFormat;
-
-    switch (def.format.video.eColorFormat) {
-    case OMX_SEC_COLOR_FormatNV12TPhysicalAddress:
-        eColorFormat = (OMX_COLOR_FORMATTYPE)HAL_PIXEL_FORMAT_CUSTOM_YCbCr_420_SP_TILED;
-        break;
-    case OMX_COLOR_FormatYUV420SemiPlanar:
-        eColorFormat = (OMX_COLOR_FORMATTYPE)HAL_PIXEL_FORMAT_YCbCr_420_SP;
-        break;
-    case OMX_COLOR_FormatYUV420Planar:
-    default:
-        eColorFormat = (OMX_COLOR_FORMATTYPE)HAL_PIXEL_FORMAT_YCbCr_420_P;
-        break;
-    }
-
-    err = native_window_set_buffers_geometry(
-            mNativeWindow.get(),
-            def.format.video.nFrameWidth,
-            def.format.video.nFrameHeight,
-            eColorFormat);
 #endif
     if (err != 0) {
         LOGE("native_window_set_buffers_geometry failed: %s (%d)",
@@ -2548,13 +2415,8 @@ status_t OMXCodec::allocateOutputBuffersFromNativeWindow() {
     }
 
     LOGV("native_window_set_usage usage=0x%lx", usage);
-#ifndef SAMSUNG_CODEC_SUPPORT
     err = native_window_set_usage(
             mNativeWindow.get(), usage | GRALLOC_USAGE_HW_TEXTURE | GRALLOC_USAGE_EXTERNAL_DISP);
-#else
-    err = native_window_set_usage(
-            mNativeWindow.get(), usage | GRALLOC_USAGE_HW_TEXTURE | GRALLOC_USAGE_EXTERNAL_DISP | GRALLOC_USAGE_HW_FIMC1 | GRALLOC_USAGE_HWC_HWOVERLAY);
-#endif
     if (err != 0) {
         LOGE("native_window_set_usage failed: %s (%d)", strerror(-err), -err);
         return err;
@@ -4076,47 +3938,11 @@ bool OMXCodec::drainInputBuffer(BufferInfo *info) {
                 CHECK(info->mMediaBuffer == NULL);
                 info->mMediaBuffer = srcBuffer;
             } else {
-#ifndef SAMSUNG_CODEC_SUPPORT
                 CHECK(srcBuffer->data() != NULL) ;
                 memcpy((uint8_t *)info->mData + offset,
                         (const uint8_t *)srcBuffer->data()
                             + srcBuffer->range_offset(),
                         srcBuffer->range_length());
-#else
-                OMX_PARAM_PORTDEFINITIONTYPE def;
-                InitOMXParams(&def);
-                def.nPortIndex = kPortIndexInput;
-
-                status_t err = mOMX->getParameter(mNode, OMX_IndexParamPortDefinition,
-                                                  &def, sizeof(def));
-                CHECK_EQ(err, (status_t)OK);
-
-                if (def.eDomain == OMX_PortDomainVideo) {
-                    OMX_VIDEO_PORTDEFINITIONTYPE *videoDef = &def.format.video;
-                    switch (videoDef->eColorFormat) {
-                    case OMX_SEC_COLOR_FormatNV12LVirtualAddress: {
-                        CHECK(srcBuffer->data() != NULL);
-                        void *pSharedMem = (void *)(srcBuffer->data());
-                        memcpy((uint8_t *)info->mData + offset,
-                                (const void *)&pSharedMem, sizeof(void *));
-                        break;
-                    }
-                    default:
-                        CHECK(srcBuffer->data() != NULL);
-                        memcpy((uint8_t *)info->mData + offset,
-                                (const uint8_t *)srcBuffer->data()
-                                    + srcBuffer->range_offset(),
-                                srcBuffer->range_length());
-                        break;
-                    }
-                } else {
-                    CHECK(srcBuffer->data() != NULL);
-                    memcpy((uint8_t *)info->mData + offset,
-                            (const uint8_t *)srcBuffer->data()
-                                + srcBuffer->range_offset(),
-                            srcBuffer->range_length());
-                }
-#endif
             }
         }
 
@@ -4713,7 +4539,7 @@ void OMXCodec::setG711Format(int32_t numChannels) {
 
 void OMXCodec::setImageOutputFormat(
         OMX_COLOR_FORMATTYPE format, OMX_U32 width, OMX_U32 height) {
-    CODEC_LOGE("setImageOutputFormat(%ld, %ld)", width, height);
+    CODEC_LOGV("setImageOutputFormat(%ld, %ld)", width, height);
 
 #if 0
     OMX_INDEXTYPE index;
@@ -5304,22 +5130,7 @@ static const char *colorFormatString(OMX_COLOR_FORMATTYPE type) {
 
     if (type == OMX_TI_COLOR_FormatYUV420PackedSemiPlanar) {
         return "OMX_TI_COLOR_FormatYUV420PackedSemiPlanar";
-	}
-#ifdef SAMSUNG_CODEC_SUPPORT
-    if (type == OMX_SEC_COLOR_FormatNV12TPhysicalAddress) {
-        return "OMX_SEC_COLOR_FormatNV12TPhysicalAddress";
-    }
-    if (type == OMX_SEC_COLOR_FormatNV12LPhysicalAddress) {
-        return "OMX_SEC_COLOR_FormatNV12LPhysicalAddress";
-    }
-    if (type == OMX_SEC_COLOR_FormatNV12LVirtualAddress) {
-        return "OMX_SEC_COLOR_FormatNV12LVirtualAddress";
-    }
-    if (type == OMX_SEC_COLOR_FormatNV12Tiled) {
-        return "OMX_SEC_COLOR_FormatNV12Tiled";
-    }
-#endif
-    else if (type == OMX_QCOM_COLOR_FormatYVU420SemiPlanar) {
+    } else if (type == OMX_QCOM_COLOR_FormatYVU420SemiPlanar) {
         return "OMX_QCOM_COLOR_FormatYVU420SemiPlanar";
 #ifdef QCOM_HARDWARE
     } else if (type == QOMX_COLOR_FormatYVU420PackedSemiPlanar32m4ka) {
@@ -5794,13 +5605,6 @@ void OMXCodec::initOutputFormat(const sp<MetaData> &inputFormat) {
                         video_def->nFrameWidth, video_def->nFrameHeight);
 
                 if (err == OK) {
-#ifdef SAMSUNG_CODEC_SUPPORT
-                    /* Hack GetConfig */
-                    rect.nLeft = 0;
-                    rect.nTop = 0;
-                    rect.nWidth = video_def->nFrameWidth;
-                    rect.nHeight = video_def->nFrameHeight;
-#endif
                     CHECK_GE(rect.nLeft, 0);
                     CHECK_GE(rect.nTop, 0);
                     CHECK_GE(rect.nWidth, 0u);

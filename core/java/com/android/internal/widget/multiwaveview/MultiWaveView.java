@@ -29,7 +29,6 @@ import android.graphics.Canvas;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.os.Vibrator;
-import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -94,10 +93,6 @@ public class MultiWaveView extends View {
     private TargetDrawable mOuterRing;
     private Vibrator mVibrator;
 
-    //Chevron location, defaulted to 1 ( right)
-    // 0 = left, 1 = right, 2 = bottom, 3 = top
-    private int mChevronLocation = 1;
-
     private int mFeedbackCount = 3;
     private int mVibrationDuration = 0;
     private int mGrabbedState;
@@ -112,8 +107,6 @@ public class MultiWaveView extends View {
     private float mSnapMargin = 0.0f;
     private boolean mDragging;
     private int mNewTargetResources;
-    private Drawable[] mNewTargetDrawables;
-    private boolean mWaitingAnimation = false;
 
     private AnimatorListener mResetListener = new AnimatorListenerAdapter() {
         public void onAnimationEnd(Animator animator) {
@@ -143,16 +136,10 @@ public class MultiWaveView extends View {
                 mNewTargetResources = 0;
                 hideTargets(false);
             }
-            if (mWaitingAnimation) {
-                internalSetTargetResources(mNewTargetDrawables);
-                mWaitingAnimation = false;
-                hideTargets(false);
-            }
             mAnimatingTargets = false;
         }
     };
     private int mTargetResourceId;
-    private Drawable[] mTargetDrawableArray;
     private int mTargetDescriptionsResourceId;
     private int mDirectionDescriptionsResourceId;
 
@@ -182,50 +169,18 @@ public class MultiWaveView extends View {
         mOuterRing = new TargetDrawable(res, a.getDrawable(R.styleable.MultiWaveView_waveDrawable));
 
         // Read chevron animation drawables
-        final int chevrons[] = { R.drawable.ic_lockscreen_chevron_left,
-                R.drawable.ic_lockscreen_chevron_right,
-                R.drawable.ic_lockscreen_chevron_up,
-                R.drawable.ic_lockscreen_chevron_down
+        final int chevrons[] = { R.styleable.MultiWaveView_leftChevronDrawable,
+                R.styleable.MultiWaveView_rightChevronDrawable,
+                R.styleable.MultiWaveView_topChevronDrawable,
+                R.styleable.MultiWaveView_bottomChevronDrawable
         };
-
-        for (int d = 0; d < 3; d++) {
-            String uri = Settings.System.getString(mContext.getContentResolver(),
-                    Settings.System.LOCKSCREEN_CUSTOM_APP_ACTIVITIES[d]);
-            // Since the array index and the location don't correlate,
-            // we need to set them correctly by these values:
-            // 0 = right, 1 = top, 2 = left
-            if (uri != null) {
-                if (uri.equals("**unlock**")) {
-                    switch (d) {
-                        case 0:
-                            mChevronLocation = 1;
-                            break;
-                        case 1:
-                            mChevronLocation = 2;
-                            break;
-                        case 2:
-                            mChevronLocation = 0;
-                            break;
-                    }
-                }
+        for (int chevron : chevrons) {
+            Drawable chevronDrawable = a.getDrawable(chevron);
+            for (int i = 0; i < mFeedbackCount; i++) {
+                mChevronDrawables.add(
+                    chevronDrawable != null ? new TargetDrawable(res, chevronDrawable) : null);
             }
         }
-
-        for (int i = 0; i < 4; i++) {
-            if (i == mChevronLocation) {
-                Drawable chevronDrawable = res.getDrawable(chevrons[i]);
-                for (int j = 0; j < mFeedbackCount; j++) {
-                    mChevronDrawables.add(new TargetDrawable(res, chevronDrawable));
-                }
-            } else {
-                for (int j = 0; j < mFeedbackCount; j++) {
-                    mChevronDrawables.add(null);
-                }  
-            }
-        }
-
-        Log.d("DEBUGME", "mChevronLocation: " + mChevronLocation);
-        Log.d("DEBUGME", "Size: " + mChevronDrawables.size());
 
         // Read array of target drawables
         TypedValue outValue = new TypedValue();
@@ -573,18 +528,6 @@ public class MultiWaveView extends View {
         updateTargetPositions();
     }
 
-    private void internalSetTargetResources(Drawable[] drawables) {
-        Resources res = getContext().getResources();
-        int count = drawables.length;
-        ArrayList<TargetDrawable> targetDrawables = new ArrayList<TargetDrawable>(count);
-        for (int i = 0; i < count; i++) {
-            targetDrawables.add(new TargetDrawable(res, drawables[i]));
-        }
-        mTargetDrawableArray = drawables;
-        mTargetDrawables = targetDrawables;
-        updateTargetPositions();
-    }
-
     /**
      * Loads an array of drawables from the given resourceId.
      *
@@ -599,27 +542,8 @@ public class MultiWaveView extends View {
         }
     }
 
-    /**
-     * Loads an array of drawables from the given array.
-     *
-     * @param resourceId
-     */
-    public void setTargetResources(Drawable[] drawables) {
-        if (mAnimatingTargets) {
-            // postpone this change until we return to the initial state
-            mWaitingAnimation = true;
-            mNewTargetDrawables = drawables;
-        } else {
-            internalSetTargetResources(drawables);
-        }
-    }
-
     public int getTargetResourceId() {
         return mTargetResourceId;
-    }
-
-    public Drawable[] getTargetDrawableArray() {
-        return mTargetDrawableArray;
     }
 
     /**

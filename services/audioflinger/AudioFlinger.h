@@ -87,17 +87,6 @@ public:
                                 int *sessionId,
                                 status_t *status);
 
-#ifdef WITH_QCOM_LPA
-    virtual     void        createSession(
-                                pid_t pid,
-                                uint32_t sampleRate,
-                                int channelCount,
-                                int *sessionId,
-                                status_t *status);
-
-    virtual     void        deleteSession();
-#endif
-
     virtual     uint32_t    sampleRate(int output) const;
     virtual     int         channelCount(int output) const;
     virtual     uint32_t    format(int output) const;
@@ -110,9 +99,6 @@ public:
     virtual     float       masterVolume() const;
     virtual     bool        masterMute() const;
 
-#ifdef WITH_QCOM_LPA
-    virtual     status_t    setSessionVolume(int stream, float left, float right);
-#endif
     virtual     status_t    setStreamVolume(int stream, float value, int output);
     virtual     status_t    setStreamMute(int stream, bool muted);
 
@@ -139,20 +125,6 @@ public:
                                     uint32_t *pLatencyMs,
                                     uint32_t flags);
 
-#ifdef WITH_QCOM_LPA
-    virtual int openSession(   uint32_t *pDevices,
-                                    uint32_t *pFormat,
-                                    uint32_t flags,
-                                    int32_t  streamType,
-                                    int32_t  sessionId);
-
-    virtual status_t pauseSession(int output, int32_t  streamType);
-
-    virtual status_t resumeSession(int output, int32_t  streamType);
-
-    virtual status_t closeSession(int output);
-#endif
-
     virtual int openDuplicateOutput(int output1, int output2);
 
     virtual status_t closeOutput(int output);
@@ -174,10 +146,6 @@ public:
     virtual status_t setVoiceVolume(float volume);
 
     virtual status_t getRenderPosition(uint32_t *halFrames, uint32_t *dspFrames, int output);
-
-#ifdef WITH_QCOM_LPA
-    virtual status_t deregisterClient(const sp<IAudioFlingerClient>& client);
-#endif
 
     virtual int newAudioSessionId();
 
@@ -243,11 +211,7 @@ public:
                 uint32_t    getMode() { return mMode; }
 
                 bool        btNrecIsOff() { return mBtNrecIsOff; }
-#ifdef WITH_QCOM_LPA
-                void applyEffectsOn(int16_t *buffer1,
-                                    int16_t *buffer2,
-                                    int size);
-#endif
+
 private:
                             AudioFlinger();
     virtual                 ~AudioFlinger();
@@ -284,11 +248,7 @@ private:
     public:
                             NotificationClient(const sp<AudioFlinger>& audioFlinger,
                                                 const sp<IAudioFlingerClient>& client,
-#ifdef WITH_QCOM_LPA
-                                                sp<IBinder> binder);
-#else
                                                 pid_t pid);
-#endif
         virtual             ~NotificationClient();
 
                 sp<IAudioFlingerClient>    client() { return mClient; }
@@ -301,11 +261,7 @@ private:
                             NotificationClient& operator = (const NotificationClient&);
 
         sp<AudioFlinger>        mAudioFlinger;
-#ifdef WITH_QCOM_LPA
-        sp<IBinder>             mBinder;
-#else
         pid_t                   mPid;
-#endif
         sp<IAudioFlingerClient> mClient;
     };
 
@@ -468,9 +424,6 @@ private:
         virtual     status_t    setParameters(const String8& keyValuePairs);
         virtual     String8     getParameters(const String8& keys) = 0;
         virtual     void        audioConfigChanged_l(int event, int param = 0) = 0;
-#ifdef WITH_QCOM_LPA
-                    void        effectConfigChanged();
-#endif
                     void        sendConfigEvent(int event, int param = 0);
                     void        sendConfigEvent_l(int event, int param = 0);
                     void        processConfigEvents();
@@ -975,11 +928,7 @@ private:
 
 
                 void        removeClient_l(pid_t pid);
-#ifdef WITH_QCOM_LPA
-                void        removeNotificationClient(sp<IBinder> binder);
-#else
                 void        removeNotificationClient(pid_t pid);
-#endif
 
 
     // record thread
@@ -1138,14 +1087,7 @@ private:
                          void *pReplyData);
 
         void reset_l();
-#ifdef WITH_QCOM_LPA
-        status_t configure(bool isForLPA = false,
-                           int sampleRate = 0,
-                           int channelCount = 0,
-                           int frameCount = 0);
-#else
         status_t configure();
-#endif
         status_t init();
         uint32_t state() {
             return mState;
@@ -1188,11 +1130,6 @@ private:
         bool             isPinned() { return mPinned; }
         void             unPin() { mPinned = false; }
 
-#ifdef WITH_QCOM_LPA
-        bool             isOnLPA() { return mIsForLPA;}
-        void             setLPAFlag(bool isForLPA) {mIsForLPA = isForLPA; }
-#endif
-
         status_t         dump(int fd, const Vector<String16>& args);
 
     protected:
@@ -1224,9 +1161,6 @@ private:
                                         // sending disable command.
         uint32_t mDisableWaitCnt;       // current process() calls count during disable period.
         bool     mSuspended;            // effect is suspended: temporarily disabled by framework
-#ifdef WITH_QCOM_LPA
-        bool     mIsForLPA;
-#endif
     };
 
     // The EffectHandle class implements the IEffect interface. It provides resources
@@ -1329,18 +1263,12 @@ private:
 
         status_t addEffect_l(const sp<EffectModule>& handle);
         size_t removeEffect_l(const sp<EffectModule>& handle);
-#ifdef WITH_QCOM_LPA
-        size_t getNumEffects() { return mEffects.size(); }
-#endif
 
         int sessionId() { return mSessionId; }
         void setSessionId(int sessionId) { mSessionId = sessionId; }
 
         sp<EffectModule> getEffectFromDesc_l(effect_descriptor_t *descriptor);
         sp<EffectModule> getEffectFromId_l(int id);
-#ifdef WITH_QCOM_LPA
-        sp<EffectModule> getEffectFromIndex_l(int idx);
-#endif
         sp<EffectModule> getEffectFromType_l(const effect_uuid_t *type);
         bool setVolume_l(uint32_t *left, uint32_t *right);
         void setDevice_l(uint32_t device);
@@ -1383,10 +1311,6 @@ private:
                                               bool enabled);
 
         status_t dump(int fd, const Vector<String16>& args);
-#ifdef WITH_QCOM_LPA
-        bool isForLPATrack() {return mIsForLPATrack; }
-        void setLPAFlag(bool flag) {mIsForLPATrack = flag;}
-#endif
 
     protected:
         friend class AudioFlinger;
@@ -1429,9 +1353,6 @@ private:
         uint32_t mNewLeftVolume;       // new volume on left channel
         uint32_t mNewRightVolume;      // new volume on right channel
         uint32_t mStrategy; // strategy for this effect chain
-#ifdef WITH_QCOM_LPA
-        bool     mIsForLPATrack;
-#endif
         // mSuspendedEffects lists all effect currently suspended in the chain
         // use effect type UUID timelow field as key. There is no real risk of identical
         // timeLow fields among effect type UUIDs.
@@ -1475,40 +1396,17 @@ private:
 
                 DefaultKeyedVector< int, sp<PlaybackThread> >  mPlaybackThreads;
                 PlaybackThread::stream_type_t       mStreamTypes[AUDIO_STREAM_CNT];
-#ifdef WITH_QCOM_LPA
-                float                               mLPALeftVol;
-                float                               mLPARightVol;
-#endif
                 float                               mMasterVolume;
                 bool                                mMasterMute;
 
                 DefaultKeyedVector< int, sp<RecordThread> >    mRecordThreads;
-#ifdef WITH_QCOM_LPA
-                DefaultKeyedVector< sp<IBinder>, sp<NotificationClient> >    mNotificationClients;
-#else
+
                 DefaultKeyedVector< pid_t, sp<NotificationClient> >    mNotificationClients;
-#endif
                 volatile int32_t                    mNextUniqueId;
                 uint32_t                            mMode;
                 bool                                mBtNrecIsOff;
-#ifdef WITH_QCOM_LPA
-                int                                 mA2DPHandle; // Handle to notify client (MIO)
-                int                                 mLPAStreamType;
-                AudioStreamOut                     *mLPAOutput;
-                audio_io_handle_t                   mLPAHandle;
-                int                                 mLPAStreamIsActive;
-                volatile bool                       mIsEffectConfigChanged;
-#endif
 
                 Vector<AudioSessionRef*> mAudioSessionRefs;
-
-#ifdef WITH_QCOM_LPA
-                public:
-                int                                 mLPASessionId;
-                sp<EffectChain>                     mLPAEffectChain;
-                int                                 mLPASampleRate;
-                int                                 mLPANumChannels;
-#endif
 };
 
 

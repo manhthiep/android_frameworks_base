@@ -22,11 +22,6 @@
 #include <errno.h>
 #include <math.h>
 #include <limits.h>
-
-#ifdef ADRENO_130_GPU
-#include <linux/fb.h>
-#endif
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
@@ -77,10 +72,6 @@
 
 #define DISPLAY_COUNT       1
 
-#ifdef USE_LGE_HDMI
-extern "C" void NvDispMgrAutoOrientation(int rotation);
-#endif
-
 namespace android {
 // ---------------------------------------------------------------------------
 
@@ -110,9 +101,6 @@ SurfaceFlinger::SurfaceFlinger()
         mDebugInTransaction(0),
         mLastTransactionTime(0),
         mBootFinished(false),
-#ifdef QCOM_HDMI_OUT
-        mExtDispOutput(EXT_TYPE_NONE),
-#endif
 #ifdef QCOM_HARDWARE
         mCanSkipComposition(false),
 #endif
@@ -428,16 +416,7 @@ bool SurfaceFlinger::threadLoop()
         handleConsoleEvents();
     }
 
-#ifdef QCOM_HDMI_OUT
-    //Serializes HDMI event handling and drawing.
-    //Necessary for race-free overlay channel management.
-    //Must always be held only after handleConsoleEvents() since
-    //that could enable / disable HDMI based on suspend resume
-    Mutex::Autolock _l(mExtDispLock);
-#else
     // if we're in a global transaction, don't do anything.
-#endif
-
     const uint32_t mask = eTransactionNeeded | eTraversalNeeded;
     uint32_t transactionFlags = peekTransactionFlags(mask);
     if (UNLIKELY(transactionFlags)) {
@@ -479,12 +458,12 @@ bool SurfaceFlinger::threadLoop()
             hwc.commit();
         }
 #else
-	// inform the h/w that we're done compositing
-	logger.log(GraphicLog::SF_COMPOSITION_COMPLETE, index);
-	hw.compositionComplete();
+		// inform the h/w that we're done compositing
+		logger.log(GraphicLog::SF_COMPOSITION_COMPLETE, index);
+		hw.compositionComplete();
 
-	logger.log(GraphicLog::SF_SWAP_BUFFERS, index);
-	postFramebuffer();
+		logger.log(GraphicLog::SF_SWAP_BUFFERS, index);
+		postFramebuffer();
 #endif
 
         logger.log(GraphicLog::SF_REPAINT_DONE, index);
@@ -503,18 +482,7 @@ void SurfaceFlinger::postFramebuffer()
     LOGW_IF(mSwapRegion.isEmpty(), "mSwapRegion is empty");
     const DisplayHardware& hw(graphicPlane(0).displayHardware());
     const nsecs_t now = systemTime();
-#ifdef QCOM_HDMI_OUT
-    const GraphicPlane& plane(graphicPlane(0));
-    const Transform& planeTransform(plane.transform());
-#endif
     mDebugInSwapBuffers = now;
-#ifdef QCOM_HDMI_OUT
-    //If orientation has changed, inform gralloc for HDMI mirroring
-    if(mOrientationChanged) {
-        mOrientationChanged = false;
-        hw.orientationChanged(planeTransform.getOrientation());
-    }
-#endif
     hw.flip(mSwapRegion);
     mLastSwapBufferTime = systemTime() - now;
     mDebugInSwapBuffers = 0;
@@ -529,9 +497,6 @@ void SurfaceFlinger::handleConsoleEvents()
     int what = android_atomic_and(0, &mConsoleSignals);
     if (what & eConsoleAcquired) {
         hw.acquireScreen();
-#ifdef QCOM_HDMI_OUT
-        updateHwcExternalDisplay(mExtDispOutput);
-#endif
         // this is a temporary work-around, eventually this should be called
         // by the power-manager
         SurfaceFlinger::turnElectronBeamOn(mElectronBeamAnimationMode);
@@ -540,9 +505,6 @@ void SurfaceFlinger::handleConsoleEvents()
     if (what & eConsoleReleased) {
         if (hw.isScreenAcquired()) {
             hw.releaseScreen();
-#ifdef QCOM_HDMI_OUT
-            updateHwcExternalDisplay(false);
-#endif
         }
     }
 
@@ -608,9 +570,6 @@ void SurfaceFlinger::handleTransactionLocked(uint32_t transactionFlags)
             // Currently unused: const uint32_t flags = mCurrentState.orientationFlags;
             GraphicPlane& plane(graphicPlane(dpy));
             plane.setOrientation(orientation);
-#ifdef QCOM_HDMI_OUT
-            mOrientationChanged = true;
-#endif
 
             // update the shared control block
             const DisplayHardware& hw(plane.displayHardware());
@@ -1057,7 +1016,7 @@ void SurfaceFlinger::setupHardwareComposer(Region& dirtyInOut)
                 }
             }
 #else
-	if (!transparent.isEmpty()) {
+		if (!transparent.isEmpty()) {
 #endif
             glClearColor(0,0,0,0);
             Region::const_iterator it = transparent.begin();
@@ -1399,35 +1358,6 @@ int SurfaceFlinger::setOrientation(DisplayID dpy,
     }
     return orientation;
 }
-
-#ifdef QCOM_HDMI_OUT
-void SurfaceFlinger::updateHwcExternalDisplay(int externaltype)
-{
-    invalidateHwcGeometry();
-    const DisplayHardware& hw(graphicPlane(0).displayHardware());
-    mDirtyRegion.set(hw.bounds());
-    HWComposer& hwc(hw.getHwComposer());
-    hwc.perform(EVENT_EXTERNAL_DISPLAY, externaltype);
-}
-
-/*
- * Handles the externalDisplay event
- * @param: disp_type - external display type(HDMI/WFD)
- * @param: value     - value(on/off)
- * */
-void SurfaceFlinger::enableExternalDisplay(int disp_type, int value)
-{
-    Mutex::Autolock _l(mExtDispLock);
-    external_display_type newType = handleEventHDMI(
-                                      (external_display_type) disp_type, value,
-                                      (external_display_type) mExtDispOutput);
-    if(newType != mExtDispOutput) {
-        mExtDispOutput = (int) newType;
-        updateHwcExternalDisplay(mExtDispOutput);
-        signalEvent();
-    }
-}
-#endif
 
 sp<ISurface> SurfaceFlinger::createSurface(
         ISurfaceComposerClient::surface_data_t* params,
@@ -1926,11 +1856,8 @@ status_t SurfaceFlinger::renderScreenToTextureLocked(DisplayID dpy,
         GLuint* textureName, GLfloat* uOut, GLfloat* vOut)
 {
     if (!GLExtensions::getInstance().haveFramebufferObject())
-#ifdef ADRENO_130_GPU
-        return directRenderScreenToTextureLocked(dpy, textureName, uOut, vOut);
-#else
         return INVALID_OPERATION;
-#endif
+
     // get screen geometry
     const DisplayHardware& hw(graphicPlane(dpy).displayHardware());
     const uint32_t hw_w = hw.getWidth();
@@ -1989,145 +1916,6 @@ status_t SurfaceFlinger::renderScreenToTextureLocked(DisplayID dpy,
     *vOut = v;
     return NO_ERROR;
 }
-
-#ifdef ADRENO_130_GPU
-status_t SurfaceFlinger::directRenderScreenToTextureLocked(DisplayID dpy,
-        GLuint* textureName, GLfloat* uOut, GLfloat* vOut)
-{
-    status_t result;
-    const DisplayHardware& hw(graphicPlane(dpy).displayHardware());
-
-    // use device framebuffer in /dev/graphics/fb0
-    size_t offset;
-    uint32_t bytespp, format, gl_format, gl_type;
-    size_t size = 0;
-    struct fb_var_screeninfo vinfo;
-    const char* fbpath = "/dev/graphics/fb0";
-    int fb = open(fbpath, O_RDONLY);
-    void const* mapbase = MAP_FAILED;
-    ssize_t mapsize = -1;
-
-    if (fb < 0) {
-        LOGE("Failed to open framebuffer");
-        return INVALID_OPERATION;
-    }
-
-    if (ioctl(fb, FBIOGET_VSCREENINFO, &vinfo) < 0) {
-        LOGE("Failed to get framebuffer info");
-        close(fb);
-        return INVALID_OPERATION;
-    }
-
-    bytespp = vinfo.bits_per_pixel / 8;
-    const uint32_t hw_w = vinfo.xres;
-    const uint32_t hw_h = vinfo.yres;
-
-    switch (bytespp) {
-    case 2:
-        format = PIXEL_FORMAT_RGB_565;
-        gl_format = GL_RGB;
-        gl_type = GL_UNSIGNED_SHORT_5_6_5;
-        break;
-    case 4:
-        format = PIXEL_FORMAT_RGBX_8888;
-        gl_format = GL_RGBA;
-        gl_type = GL_UNSIGNED_BYTE;
-        break;
-    default:
-        close(fb);
-        LOGE("Failed to detect framebuffer bytespp");
-        return INVALID_OPERATION;
-        break;
-    }
-
-    offset = (vinfo.xoffset + vinfo.yoffset * vinfo.xres) * bytespp;
-    size = vinfo.xres * vinfo.yres * bytespp;
-
-    mapsize = offset + size;
-    mapbase = mmap(0, mapsize, PROT_READ, MAP_PRIVATE, fb, 0);
-    close(fb);
-    if (mapbase == MAP_FAILED) {
-        return INVALID_OPERATION;
-    }
-
-    void const* fbbase = (void *)((char const *)mapbase + offset);
-    GLfloat u = 1;
-    GLfloat v = 1;
-
-    // build texture
-    GLuint tname;
-    glGenTextures(1, &tname);
-    glBindTexture(GL_TEXTURE_2D, tname);
-    glTexImage2D(GL_TEXTURE_2D, 0, gl_format,
-            hw_w, hw_h, 0, gl_format, GL_UNSIGNED_BYTE, 0);
-    if (glGetError() != GL_NO_ERROR) {
-        while ( glGetError() != GL_NO_ERROR ) ;
-        GLint tw = (2 << (31 - clz(hw_w)));
-        GLint th = (2 << (31 - clz(hw_h)));
-        glTexImage2D(GL_TEXTURE_2D, 0, gl_format,
-                tw, th, 0, gl_format, GL_UNSIGNED_BYTE, 0);
-        u = GLfloat(hw_w) / tw;
-        v = GLfloat(hw_h) / th;
-    }
-
-    // write fb data to image buffer texture (reverse order)
-    GLubyte* imageData = (GLubyte*)malloc(size);
-    if (imageData) {
-        void *ptr = imageData;
-        uint32_t rowlen = hw_w * bytespp;
-        offset = size;
-        for (uint32_t j = hw_h; j > 0; j--) {
-            offset -= rowlen;
-            memcpy(ptr, fbbase + offset, rowlen);
-            ptr += rowlen;
-        }
-
-        // write image buffer to the texture
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-        // copy imageData to the texture
-        glTexImage2D(GL_TEXTURE_2D, 0, gl_format, hw_w, hw_h, 0,
-                gl_format, gl_type, imageData);
-
-        LOGI("direct Framebuffer texture for gl_format=%d gl_type=%d", gl_format, gl_type);
-        result = NO_ERROR;
-    } else {
-        result = NO_MEMORY;
-    }
-
-    // redraw the screen entirely...
-    glDisable(GL_TEXTURE_2D);
-    glDisable(GL_SCISSOR_TEST);
-    glClearColor(0,0,0,1);
-    glClear(GL_COLOR_BUFFER_BIT);
-    glEnable(GL_SCISSOR_TEST);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    const Vector< sp<LayerBase> >& layers(mVisibleLayersSortedByZ);
-    const size_t count = layers.size();
-    for (size_t i=0 ; i<count ; ++i) {
-        const sp<LayerBase>& layer(layers[i]);
-        layer->drawForSreenShot();
-    }
-
-    hw.compositionComplete();
-
-    // done
-    munmap((void *)mapbase, mapsize);
-
-    *textureName = tname;
-    *uOut = u;
-    *vOut = v;
-
-    // free buffer memory
-    if (imageData) {
-        free(imageData);
-    }
-
-    return result;
-}
-#endif
 
 // ---------------------------------------------------------------------------
 
@@ -2552,127 +2340,6 @@ status_t SurfaceFlinger::turnElectronBeamOn(int32_t mode)
 
 // ---------------------------------------------------------------------------
 
-#ifdef ADRENO_130_GPU
-status_t SurfaceFlinger::directCaptureScreenImplLocked(DisplayID dpy,
-        sp<IMemoryHeap>* heap,
-        uint32_t* w, uint32_t* h, PixelFormat* f,
-        uint32_t sw, uint32_t sh,
-        uint32_t minLayerZ, uint32_t maxLayerZ)
-{
-    status_t result = PERMISSION_DENIED;
-
-    uint32_t width, height, format;
-    uint32_t bytespp;
-    void const* mapbase = MAP_FAILED;
-    ssize_t mapsize = -1;
-
-    struct fb_var_screeninfo vinfo;
-    const char* fbpath = "/dev/graphics/fb0";
-
-    // only one display supported for now
-    if (UNLIKELY(uint32_t(dpy) >= DISPLAY_COUNT))
-        return BAD_VALUE;
-
-    // get screen geometry
-    const DisplayHardware& hw(graphicPlane(dpy).displayHardware());
-    const uint32_t hw_w = hw.getWidth();
-    const uint32_t hw_h = hw.getHeight();
-
-    if ((sw > hw_w) || (sh > hw_h))
-        return BAD_VALUE;
-
-    sw = (!sw) ? hw_w : sw;
-    sh = (!sh) ? hw_h : sh;
-
-    int fb = open(fbpath, O_RDONLY);
-    if (fb < 0) {
-        LOGE("Failed to open framebuffer");
-        return INVALID_OPERATION;
-    }
-
-    if (ioctl(fb, FBIOGET_VSCREENINFO, &vinfo) < 0) {
-        LOGE("Failed to get framebuffer info");
-        close(fb);
-        return INVALID_OPERATION;
-    }
-
-    bytespp = vinfo.bits_per_pixel / 8;
-    switch (bytespp) {
-    case 2:
-        format = PIXEL_FORMAT_RGB_565;
-        break;
-    case 4:
-        format = PIXEL_FORMAT_RGBX_8888;
-        break;
-    default:
-        close(fb);
-        LOGE("Failed to detect framebuffer bytespp");
-        return INVALID_OPERATION;
-        break;
-    }
-
-    size_t offset = (vinfo.xoffset + vinfo.yoffset * vinfo.xres) * bytespp;
-    size_t size = vinfo.xres * vinfo.yres * bytespp;
-    mapsize = offset + size;
-    mapbase = mmap(0, mapsize, PROT_READ, MAP_PRIVATE, fb, 0);
-    close(fb);
-    if (mapbase == MAP_FAILED) {
-        return INVALID_OPERATION;
-    }
-
-    width = vinfo.xres;
-    height = vinfo.yres;
-    void const* fbbase = (void *)((char const *)mapbase + offset);
-
-    const LayerVector& layers(mDrawingState.layersSortedByZ);
-    const size_t count = layers.size();
-    for (size_t i=0 ; i<count ; ++i) {
-        const sp<LayerBase>& layer(layers[i]);
-        const uint32_t flags = layer->drawingState().flags;
-        if (!(flags & ISurfaceComposer::eLayerHidden)) {
-            const uint32_t z = layer->drawingState().z;
-            if (z >= minLayerZ && z <= maxLayerZ) {
-                layer->drawForSreenShot();
-            }
-        }
-    }
-
-    // allocate shared memory large enough to hold the
-    // screen capture
-    size = sw * sh * bytespp;
-    sp<MemoryHeapBase> heapBase(
-            new MemoryHeapBase(size, 0, "screen-capture") );
-    void* ptr = heapBase->getBase();
-
-    if (ptr) {
-        if ((sw == hw_w) && (sh == hw_h)) {
-            memcpy(ptr, fbbase, size);
-        } else {
-            uint32_t rowlen = hw_w * bytespp;
-            uint32_t collen = sw * bytespp;
-            size_t offset = 0;
-            for (uint32_t j = 0; j < sh; j++) {
-                memcpy(ptr, fbbase + offset, collen);
-                ptr += collen;
-                offset += rowlen;
-            }
-        }
-        *heap = heapBase;
-        *w = sw;
-        *h = sh;
-        *f = format;
-        result = NO_ERROR;
-    } else {
-        result = NO_MEMORY;
-    }
-    munmap((void *)mapbase, mapsize);
-
-    hw.compositionComplete();
-
-    return result;
-}
-#endif
-
 status_t SurfaceFlinger::captureScreenImplLocked(DisplayID dpy,
         sp<IMemoryHeap>* heap,
         uint32_t* w, uint32_t* h, PixelFormat* f,
@@ -2686,12 +2353,7 @@ status_t SurfaceFlinger::captureScreenImplLocked(DisplayID dpy,
         return BAD_VALUE;
 
     if (!GLExtensions::getInstance().haveFramebufferObject())
-#ifdef ADRENO_130_GPU
-        return directCaptureScreenImplLocked(dpy,
-                heap, w, h, f, sw, sh, minLayerZ, maxLayerZ);
-#else
         return INVALID_OPERATION;
-#endif
 
     // get screen geometry
     const DisplayHardware& hw(graphicPlane(dpy).displayHardware());
@@ -2817,10 +2479,8 @@ status_t SurfaceFlinger::captureScreen(DisplayID dpy,
     if (UNLIKELY(uint32_t(dpy) >= DISPLAY_COUNT))
         return BAD_VALUE;
 
-#ifndef ADRENO_130_GPU
     if (!GLExtensions::getInstance().haveFramebufferObject())
         return INVALID_OPERATION;
-#endif
 
     class MessageCaptureScreen : public MessageBase {
         SurfaceFlinger* flinger;
@@ -3174,9 +2834,6 @@ status_t GraphicPlane::setOrientation(int orientation)
     mWidth = int(w);
     mHeight = int(h);
 
-#ifdef USE_LGE_HDMI
-    NvDispMgrAutoOrientation(orientation);
-#endif
     Transform orientationTransform;
     GraphicPlane::orientationToTransfrom(orientation, w, h,
             &orientationTransform);

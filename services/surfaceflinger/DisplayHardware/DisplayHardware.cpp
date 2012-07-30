@@ -417,10 +417,3 @@ void DisplayHardware::dump(String8& res) const
 {
     mNativeWindow->dump(res);
 }
-
-#ifdef QCOM_HDMI_OUT
-void DisplayHardware::orientationChanged(int orientation) const
-{
-    mNativeWindow->orientationChanged(EVENT_ORIENTATION_CHANGE, orientation);
-}
-#endif

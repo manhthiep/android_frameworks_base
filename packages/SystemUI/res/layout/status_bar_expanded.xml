@@ -85,19 +85,49 @@
         android:background="@drawable/status_bar_hr"
         />
 
-    <ViewFlipper android:id="@+id/qwik_widgets_flipper"
-	         android:layout_width="match_parent"
-	         android:layout_height="match_parent">
+    <FrameLayout
+        android:layout_width="match_parent" 
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        >
+        <TextView android:id="@+id/noNotificationsTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="@android:style/TextAppearance.Large"
+            android:padding="8dp"
+            android:layout_gravity="top"
+            android:gravity="left"
+            android:text="@string/status_bar_no_notifications_title"
+            />
 
-	    <!--    Each added layout is a new view for the ViewFlipper   -->
-	    <include
-	    layout="@layout/status_bar_notifications_view"
-	    android:id="@+id/flipper_notifications" />
+        <ScrollView
+            android:id="@+id/scroll"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fadingEdge="none"
+            android:overScrollMode="ifContentScrolls"
+            >
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                >
+                <com.android.systemui.statusbar.policy.NotificationRowLayout
+                    android:id="@+id/latestItems"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    systemui:rowHeight="@dimen/notification_height"
+                    />
 
-	    <include
-	    layout="@layout/status_bar_settings_view"
-	    android:id="@+id/flipper_settings" />
+            </LinearLayout>
+        </ScrollView>
 
-    </ViewFlipper>
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/title_bar_shadow"
+            android:scaleType="fitXY"
+        />
 
+    </FrameLayout>
 </com.android.systemui.statusbar.phone.ExpandedView>
